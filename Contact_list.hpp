@@ -14,6 +14,7 @@ class Contact_list {
 		//Returns a bool denoting whether the insertion took place
 		bool add_contact(std::string name, std::string email_address) {		
 			contact_list.insert(std::pair<std::string, std::string>(name, email_address));
+			names.push_back(name);
 			/*if(result) {
 				names.push_back(name);
 			}*/
