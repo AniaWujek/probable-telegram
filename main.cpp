@@ -4,7 +4,15 @@
 #include <map>
 #include <rapp-cloud-api/send_email.hpp>
 #include "Contact_list.hpp"
+#include <rapp/objects/picture/picture.hpp>
+#include <chrono>
+#include <thread>
+#include <rapp-robots-api/vision/vision.hpp>
+#include <opencv2/opencv.hpp>
+#include <iostream>
+#include <fstream>
 #define host "roman"
+
 
 int main(int argc, char * argv[]) {
     rapp::robot::info info(argc, argv);
@@ -27,6 +35,9 @@ int main(int argc, char * argv[]) {
 		contact_list.add_contact("anna","aniawujek@gmail.com");
 		contact_list.add_contact("bartek","bartswis@gmail.com");
 		contact_list.add_contact("vega","wegierek.maciej@gmail.com");
+		
+		rapp::object::picture::Ptr picture;
+		rapp::robot::vision vis(argc, argv);
 		
 		
 		do {
@@ -66,7 +77,33 @@ int main(int argc, char * argv[]) {
 			message = "pozdrowienia od Nao";
 			
 			message = "Dear " + name + "!\n\n" + message + "\n\n XOXO\nZbyszek Zbyniu Zbyszkowski";
-			comm.text_to_speech("Sending message: " + message);		
+			comm.text_to_speech("Sending message: " + message);	
+			std::vector<std::string> attachments = {};
+			
+			do {
+				comm.text_to_speech("Do you want to attach a photo?");	
+				result = comm.word_spotting(words);
+
+				if (result == "no") {
+					comm.text_to_speech("ok");
+				}
+				else if (result == "yes") {
+					
+					comm.text_to_speech("Show me something!");
+					std::this_thread::sleep_for(std::chrono::seconds(2));
+					picture = vis.capture_image(0, 3, "png");
+					comm.text_to_speech("ok");
+					cv::Mat img;
+					img = cv::imdecode(picture->bytearray(), -1);
+					std::string filepath = "/tmp/selfie.png";
+					cv::imwrite(filepath, img);
+					attachments.push_back(filepath); 
+					
+					/*** robienie zdjecia i zapisanie do pliku i do attachments ***/
+					
+					message = message + "\n\nPS Please see attached photo.";
+				}
+			} while (result != "yes" && result != "no");	
 			
 			//send email with message
 			rapp::cloud::send_email (
@@ -77,7 +114,7 @@ int main(int argc, char * argv[]) {
 				{contact_list.get_email_address(name)},
 				"Subject", // subject
 				message, // body
-				{}, // list of attachements
+				attachments, // list of attachements
 				host
 			);
 				
@@ -87,18 +124,19 @@ int main(int argc, char * argv[]) {
 
 				if (result == "no") {
 					comm.text_to_speech("bye");
-					return 0;
+					//return 0;
 				}
 
-				if (result != "yes") {
+				else if (result != "yes") {
 					comm.text_to_speech("Say yes to send email or no to finish");
 				}
-			} while (result != "yes");
+			} while (result != "yes" && result != "no");
 			
 		} while(result == "yes");
 		comm.text_to_speech("Bye!");
 	}
 	
+	type = "report";
 	if(type == "report") {
 		
 		Contact_list contact_list;
@@ -107,15 +145,20 @@ int main(int argc, char * argv[]) {
 		contact_list.add_contact("Bartek","bartswis@gmail.com");
 		contact_list.add_contact("Vega","wegierek.maciej@gmail.com");		
 		
-		std::string message;
-		std::string file1 = info.get_path("data/raport.txt");
-		std::cout<<std::endl<<file1<<std::endl;
-		std::string file2 = info.get_path("data/selfie.png");
+		std::string rep_message;
 		
-		std::vector<std::string> attachments = {file1, file2};
+		std::ofstream f1;
+		f1.open("/tmp/report.txt");
+		f1 << "raport raport raport";
+		f1.close();
+
+		
+		std::string rep = "/tmp/report.txt";
+		
+		std::vector<std::string> reports = {rep};
 		
 		
-		message = "Dear son of Zbyszek Zbyszkowski!\n\nPlease find attached my daily report.\n\nXOXO\nSuper Robot";
+		rep_message = "Dear son of Zbyszek Zbyszkowski!\n\nPlease find attached my daily report.\n\nXOXO\nSuper Robot";
 			
 		
 		//send email with message
@@ -126,8 +169,8 @@ int main(int argc, char * argv[]) {
 			"587", // port
 			{contact_list.get_email_address("Anna")},
 			"Daily report", // subject
-			message, // body
-			attachments, // list of attachements
+			rep_message, // body
+			reports, // list of attachements
 			host
 		);
 		comm.text_to_speech("I just sent your daily report");	
