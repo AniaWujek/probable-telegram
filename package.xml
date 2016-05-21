@@ -1,0 +1,11 @@
+<package format="2">
+  <name>aniaivega</name>
+  <version>0.2.0</version>
+  <description>Zbyszek</description>
+  <maintainer email="zbyszekzbyniuzbyszkowski@gmail.com">Anna Wujek i Maciej Vega Węgierek</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>cmake</buildtool_depend>
+
+  <build_depend>rapp-robots-api</build_depend>
+</package>
