@@ -1,3 +1,5 @@
 #!/bin/bash
 
-$1/bin/aniaivega --base_path $1
+BASEPATH=$1
+shift
+$BASEPATH/bin/aniaivega --base_path $BASEPATH $@

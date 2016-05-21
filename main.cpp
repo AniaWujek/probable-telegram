@@ -15,8 +15,13 @@
 
 
 int main(int argc, char * argv[]) {
+	for (int i = 1; i < argc; ++i) {
+		std::cout << argv[i] << "\n";
+	}
     rapp::robot::info info(argc, argv);
+	rapp::robot::vision vis(argc, argv);
     rapp::robot::communication comm(argc, argv);
+		
     std::string type = "personal";
     
 	if(type == "personal") {
@@ -37,8 +42,6 @@ int main(int argc, char * argv[]) {
 		contact_list.add_contact("vega","wegierek.maciej@gmail.com");
 		
 		rapp::object::picture::Ptr picture;
-		rapp::robot::vision vis(argc, argv);
-		
 		
 		do {
 			result = comm.word_spotting(words);
@@ -92,11 +95,8 @@ int main(int argc, char * argv[]) {
 					comm.text_to_speech("Show me something!");
 					std::this_thread::sleep_for(std::chrono::seconds(2));
 					picture = vis.capture_image(0, 3, "png");
-					comm.text_to_speech("ok");
-					cv::Mat img;
-					img = cv::imdecode(picture->bytearray(), -1);
 					std::string filepath = "/tmp/selfie.png";
-					cv::imwrite(filepath, img);
+					picture->save(filepath);
 					attachments.push_back(filepath); 
 					
 					/*** robienie zdjecia i zapisanie do pliku i do attachments ***/
